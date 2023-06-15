@@ -23,9 +23,16 @@ variable "aws_vpc_enable_dns_hostnames" {
   default = true
 }
 
-variable "aws_subnet_cidr_block" {
+
+# Could have used 1 variable with value of type list(string) and access them using index
+variable "aws_subnet_cidr_block_1" {
   type = string
   default = "10.0.0.0/24"
+}
+
+variable "aws_subnet_cidr_block_2" {
+  type = string
+  default = "10.0.1.0/24"
 }
 
 variable "aws_subnet_map_public_ip_on_launch" {
