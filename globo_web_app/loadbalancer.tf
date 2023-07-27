@@ -4,13 +4,19 @@ resource "aws_lb" "nginx_lb" {
   security_groups    = [aws_security_group.lb_sg.id]
   subnets            = [aws_subnet.public_subnet1.id, aws_subnet.public_subnet2.id]
 
+  access_logs {
+    bucket  = aws_s3_bucket.website_bucket.id
+    prefix  = "lb-logs"
+    enabled = true
+  }
+
   enable_deletion_protection = false
 
   tags = local.common_tags
 }
 
 resource "aws_lb_target_group" "nginx_tg" {
-#   name     = "tf-example-lb-tg"
+  #   name     = "tf-example-lb-tg"
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.app.id

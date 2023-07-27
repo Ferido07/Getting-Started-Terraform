@@ -1,14 +1,4 @@
 ##################################################################################
-# PROVIDERS
-##################################################################################
-
-provider "aws" {
-  access_key = var.aws_access_key
-  secret_key = var.aws_secret_key
-  region     = var.aws_region
-}
-
-##################################################################################
 # DATA
 ##################################################################################
 
@@ -38,7 +28,7 @@ resource "aws_subnet" "public_subnet1" {
   cidr_block              = var.aws_subnet_cidr_block_1
   vpc_id                  = aws_vpc.app.id
   map_public_ip_on_launch = var.aws_subnet_map_public_ip_on_launch
-  availability_zone       = data.aws_availability_zones.available.names[0] 
+  availability_zone       = data.aws_availability_zones.available.names[0]
 
   tags = local.common_tags
 }
@@ -47,7 +37,7 @@ resource "aws_subnet" "public_subnet2" {
   cidr_block              = var.aws_subnet_cidr_block_2
   vpc_id                  = aws_vpc.app.id
   map_public_ip_on_launch = var.aws_subnet_map_public_ip_on_launch
-  availability_zone       = data.aws_availability_zones.available.names[1] 
+  availability_zone       = data.aws_availability_zones.available.names[1]
 
   tags = local.common_tags
 }
