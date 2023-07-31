@@ -1,11 +1,12 @@
 locals {
   common_tags = {
-    Name         = "Terraform Practice"
     company      = var.company
     billing_code = var.billing_code
     project      = "${var.company}-${var.project}"
+    Terraform    = true
   }
-  s3_bucket_name = "globo-web-app-${random_integer.rand.result}"
+  naming_prefix  = "dev-${var.naming_prefix}"
+  s3_bucket_name = lower("${local.naming_prefix}-${random_integer.rand.result}")
 }
 
 resource "random_integer" "rand" {

@@ -2,7 +2,7 @@
 resource "aws_s3_bucket" "website_bucket" {
   bucket        = local.s3_bucket_name
   force_destroy = true
-  tags          = local.common_tags
+  tags          = merge(local.common_tags, { Name = "${local.naming_prefix}-bucket" })
 }
 
 resource "aws_s3_bucket_policy" "allow_elb_write_access_logs" {
@@ -33,24 +33,21 @@ data "aws_iam_policy_document" "allow_elb_write_access_logs" {
 }
 
 # s3 bucket objects
-resource "aws_s3_object" "index" {
+resource "aws_s3_object" "website" {
+  for_each = {
+    index = "website/index.html"
+    logo  = "website/Globo_logo_Vert.png"
+  }
   bucket = aws_s3_bucket.website_bucket.bucket
-  key    = "website/index.html"
-  source = "website/index.html"
-  etag   = filemd5("website/index.html")
-  tags   = local.common_tags
-}
-resource "aws_s3_object" "logo" {
-  bucket = aws_s3_bucket.website_bucket.bucket
-  key    = "website/Globo_logo_Vert.png"
-  source = "website/Globo_logo_Vert.png"
-  etag   = filemd5("website/Globo_logo_Vert.png")
-  tags   = local.common_tags
+  key    = each.value
+  source = each.value
+  etag   = filemd5(each.value)
+  tags   = merge(local.common_tags, { Name = "${local.naming_prefix}-website-resource" })
 }
 
 # IAM Role
 resource "aws_iam_role" "ec2_read_s3_role" {
-  name = "ec2_read_s3_role"
+  name = "${local.naming_prefix}-ec2_read_s3_role"
 
   # Terraform's "jsonencode" function converts a
   # Terraform expression result to valid JSON syntax.
@@ -68,12 +65,12 @@ resource "aws_iam_role" "ec2_read_s3_role" {
     ]
   })
 
-  tags = local.common_tags
+  tags = merge(local.common_tags, { Name = "${local.naming_prefix}-ec2_read_s3_role" })
 }
 
 # IAM role policy
 resource "aws_iam_role_policy" "read_s3_policy" {
-  name = "read_s3_policy"
+  name = "${local.naming_prefix}-read_s3_policy"
   role = aws_iam_role.ec2_read_s3_role.id
 
   # Terraform's "jsonencode" function converts a
@@ -97,7 +94,7 @@ resource "aws_iam_role_policy" "read_s3_policy" {
 
 # ec2 instance profile
 resource "aws_iam_instance_profile" "ec2_read_s3_profile" {
-  name = "ec2_read_s3_profile"
+  name = "${local.naming_prefix}-ec2_read_s3_profile"
   role = aws_iam_role.ec2_read_s3_role.name
-  tags = local.common_tags
+  tags = merge(local.common_tags, { Name = "${local.naming_prefix}-ec2_read_s3_profile" })
 }

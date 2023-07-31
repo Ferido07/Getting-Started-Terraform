@@ -15,31 +15,23 @@ resource "aws_vpc" "app" {
   cidr_block           = var.aws_vpc_cidr
   enable_dns_hostnames = var.aws_vpc_enable_dns_hostnames
 
-  tags = local.common_tags
+  tags = merge(local.common_tags, { Name = "${local.naming_prefix}-vpc" })
 }
 
 resource "aws_internet_gateway" "app" {
   vpc_id = aws_vpc.app.id
 
-  tags = local.common_tags
+  tags = merge(local.common_tags, { Name = "${local.naming_prefix}-ig" })
 }
 
-resource "aws_subnet" "public_subnet1" {
-  cidr_block              = var.aws_subnet_cidr_block_1
+resource "aws_subnet" "public_subnets" {
+  count                   = var.subnet_count
+  cidr_block              = cidrsubnet(var.aws_subnet_cidr_block, 8, count.index)
   vpc_id                  = aws_vpc.app.id
   map_public_ip_on_launch = var.aws_subnet_map_public_ip_on_launch
-  availability_zone       = data.aws_availability_zones.available.names[0]
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
 
-  tags = local.common_tags
-}
-
-resource "aws_subnet" "public_subnet2" {
-  cidr_block              = var.aws_subnet_cidr_block_2
-  vpc_id                  = aws_vpc.app.id
-  map_public_ip_on_launch = var.aws_subnet_map_public_ip_on_launch
-  availability_zone       = data.aws_availability_zones.available.names[1]
-
-  tags = local.common_tags
+  tags = merge(local.common_tags, { Name = "${local.naming_prefix}-subnet-${count.index + 1}" })
 }
 
 # ROUTING #
@@ -51,16 +43,12 @@ resource "aws_route_table" "app" {
     gateway_id = aws_internet_gateway.app.id
   }
 
-  tags = local.common_tags
+  tags = merge(local.common_tags, { Name = "${local.naming_prefix}-rt" })
 }
 
-resource "aws_route_table_association" "app_subnet1" {
-  subnet_id      = aws_subnet.public_subnet1.id
-  route_table_id = aws_route_table.app.id
-}
-
-resource "aws_route_table_association" "app_subnet2" {
-  subnet_id      = aws_subnet.public_subnet2.id
+resource "aws_route_table_association" "app_subnets" {
+  count          = var.subnet_count
+  subnet_id      = aws_subnet.public_subnets[count.index].id
   route_table_id = aws_route_table.app.id
 }
 
@@ -86,7 +74,7 @@ resource "aws_security_group" "nginx_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = local.common_tags
+  tags = merge(local.common_tags, { Name = "${local.naming_prefix}-ec2-sg" })
 }
 
 # Load Balancer security group 
@@ -110,6 +98,6 @@ resource "aws_security_group" "lb_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = local.common_tags
+  tags = merge(local.common_tags, { Name = "${local.naming_prefix}-lb-sg" })
 }
 

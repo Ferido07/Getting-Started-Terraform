@@ -1,8 +1,9 @@
 resource "aws_lb" "nginx_lb" {
+  name               = "${local.naming_prefix}-lb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.lb_sg.id]
-  subnets            = [aws_subnet.public_subnet1.id, aws_subnet.public_subnet2.id]
+  subnets            = aws_subnet.public_subnets[*].id
 
   access_logs {
     bucket  = aws_s3_bucket.website_bucket.id
@@ -12,16 +13,16 @@ resource "aws_lb" "nginx_lb" {
 
   enable_deletion_protection = false
 
-  tags = local.common_tags
+  tags = merge(local.common_tags, { Name = "${local.naming_prefix}-lb" })
 }
 
 resource "aws_lb_target_group" "nginx_tg" {
-  #   name     = "tf-example-lb-tg"
+  name     = "${local.naming_prefix}-tg"
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.app.id
 
-  tags = local.common_tags
+  tags = merge(local.common_tags, { Name = "${local.naming_prefix}-tg" })
 }
 
 
@@ -35,17 +36,12 @@ resource "aws_lb_listener" "front_end" {
     target_group_arn = aws_lb_target_group.nginx_tg.arn
   }
 
-  tags = local.common_tags
+  tags = merge(local.common_tags, { Name = "${local.naming_prefix}-listener" })
 }
 
-resource "aws_lb_target_group_attachment" "tg1" {
+resource "aws_lb_target_group_attachment" "tg" {
+  count            = var.instance_count
   target_group_arn = aws_lb_target_group.nginx_tg.arn
-  target_id        = aws_instance.nginx1.id
-  port             = 80
-}
-
-resource "aws_lb_target_group_attachment" "tg2" {
-  target_group_arn = aws_lb_target_group.nginx_tg.arn
-  target_id        = aws_instance.nginx2.id
+  target_id        = aws_instance.nginx[count.index].id
   port             = 80
 }
