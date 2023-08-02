@@ -4,8 +4,7 @@ variable "aws_region" {
 }
 
 variable "aws_vpc_cidr" {
-  type    = string
-  default = "10.0.0.0/16"
+  type = map(string)
 }
 
 variable "aws_vpc_enable_dns_hostnames" {
@@ -14,8 +13,7 @@ variable "aws_vpc_enable_dns_hostnames" {
 }
 
 variable "subnet_count" {
-  type    = number
-  default = 2
+  type = map(number)
 }
 
 variable "aws_subnet_map_public_ip_on_launch" {
@@ -24,13 +22,11 @@ variable "aws_subnet_map_public_ip_on_launch" {
 }
 
 variable "aws_instance_type" {
-  type    = string
-  default = "t2.micro"
+  type = map(string)
 }
 
 variable "instance_count" {
-  type    = number
-  default = 2
+  type = map(number)
 }
 
 variable "company" {
