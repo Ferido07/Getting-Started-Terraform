@@ -18,11 +18,6 @@ variable "subnet_count" {
   default = 2
 }
 
-variable "aws_subnet_cidr_block" {
-  type    = string
-  default = "10.0.0.0/16"
-}
-
 variable "aws_subnet_map_public_ip_on_launch" {
   type    = bool
   default = true

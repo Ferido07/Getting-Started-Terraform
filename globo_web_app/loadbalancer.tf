@@ -3,10 +3,10 @@ resource "aws_lb" "nginx_lb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.lb_sg.id]
-  subnets            = aws_subnet.public_subnets[*].id
+  subnets            = module.vpc.public_subnets
 
   access_logs {
-    bucket  = aws_s3_bucket.website_bucket.id
+    bucket  = module.s3.bucket.id
     prefix  = "lb-logs"
     enabled = true
   }
@@ -20,7 +20,7 @@ resource "aws_lb_target_group" "nginx_tg" {
   name     = "${local.naming_prefix}-tg"
   port     = 80
   protocol = "HTTP"
-  vpc_id   = aws_vpc.app.id
+  vpc_id   = module.vpc.vpc_id
 
   tags = merge(local.common_tags, { Name = "${local.naming_prefix}-tg" })
 }
